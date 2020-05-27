@@ -20,14 +20,38 @@ const compareArrays = (a1, a2) => {
 };
 
 const formatDate = ( date ) => {
-  let day = date.getDate();
-  let month = date.getMonth() + 1;
-  let year = date.getFullYear();
+  const dateRegExYearLast = /\d{2}([\/-])\d{2}\1\d{4}/;
+  const dateRegExYearFirst = /\d{4}([\/.-])\d{2}\1\d{2}/;
+  const  formatRule = (arg) => {
+    let day = arg.getDate();
+    let month = arg.getMonth() + 1;
+    let year = arg.getFullYear();
 
-  month = month < 10 ? "0" + month : month;
-  day = day < 10 ? "0" + day : day;
-  return `${day}.${month}.${year}`;
-}
+    month = month < 10 ? "0" + month : month;
+    day = day < 10 ? "0" + day : day;
+    return `${day}.${month}.${year}`;
+  };
+
+  if ( Object.prototype.toString.call( date ) === "[object Date]" && !isNaN( date ) ) {
+    const formatedDate = formatRule(date);
+    return formatedDate
+  }
+
+  if ( date.toString().match(dateRegExYearFirst) ) {
+    let wrongDate = date.match(dateRegExYearFirst)[0];
+    let newDate = new Date(wrongDate);
+    let formatedDate = formatRule(newDate);
+    return formatedDate
+  }
+
+  if ( date.toString().match(dateRegExYearLast) ) {
+    const reg = /[\/-]/g
+    const wrongDate = date.match(dateRegExYearLast)[0];
+    const formatedDate = wrongDate.replace(reg, '.');
+    return formatedDate
+  }
+  return date
+};
 
 const collectObjects = ( objArr, rules, localization ) => {
   let newArr = [],
@@ -70,9 +94,9 @@ const collectObjects = ( objArr, rules, localization ) => {
             if ( typeof( item ) === "boolean" ) {
               item ? item = "Так" : item = "Ні";
             }
-            if ( Object.prototype.toString.call( item ) === "[object Date]" && !isNaN( item ) ) {
-              item = formatDate( item );
-            }
+
+            item = formatDate(item);
+
             newObj[ newKey ] = item;
             keyCounter++;
             return newObj
@@ -93,6 +117,7 @@ const collectObjects = ( objArr, rules, localization ) => {
     path = []
   }
   deepDrillObject( object );
+    
   return newArr
 };
 
